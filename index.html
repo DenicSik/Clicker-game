@@ -1,266 +1,451 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>Кликер</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding-top: 50px;
-      background: linear-gradient(135deg, #FDE68A, #F59E0B);
-      margin: 0;
-      color: #333;
-    }
-    #clicker-container {
-      max-width: 400px;
-      margin: 0 auto;
-      background: #fff7d1;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-      min-height: 300px;
-      position: relative;
-    }
-    button {
-      cursor: pointer;
-      border: none;
-      border-radius: 8px;
-      padding: 12px 24px;
-      font-size: 18px;
-      font-weight: bold;
-      color: white;
-      background-color: #f59e0b;
-      transition: transform 0.2s ease, background-color 0.3s ease;
-      margin: 8px;
-      min-width: 180px;
-    }
-    button:hover {
-      background-color: #d97706;
-      transform: scale(1.05);
-    }
-    .clicked {
-      transform: scale(1.2);
-      transition: transform 0.1s ease;
-    }
-    .info {
-      font-size: 20px;
-      margin: 12px 0;
-    }
-    #settingsButton {
-      margin-top: 10px;
-      min-width: 120px;
-    }
-    #nickname-modal {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.7);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    #nickname-modal > div {
-      background: #fff7d1;
-      border-radius: 12px;
-      padding: 30px 40px;
-      max-width: 350px;
-      width: 100%;
-      box-shadow: 0 8px 15px rgba(0,0,0,0.2);
-    }
-    #nickname-modal label {
-      display: block;
-      font-weight: bold;
-      margin-bottom: 10px;
-      font-size: 18px;
-      color: #333;
-    }
-    #nickname-input {
-      width: 100%;
-      padding: 10px;
-      font-size: 18px;
-      border-radius: 8px;
-      border: 2px solid #f59e0b;
-      margin-bottom: 20px;
-      box-sizing: border-box;
-    }
-    #nickname-error {
-      color: red;
-      min-height: 18px;
-      margin-bottom: 10px;
-      font-size: 14px;
-    }
-    #leaderboard {
-      text-align: left;
-      margin-top: 15px;
-      max-height: 180px;
-      overflow-y: auto;
-      background: #fff3c4;
-      border-radius: 10px;
-      padding: 10px;
-    }
-    #leaderboard h3 {
-      margin-top: 0;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-    #leaderboard ul {
-      list-style: none;
-      padding-left: 0;
-      margin: 0;
-    }
-    #leaderboard li {
-      padding: 4px 6px;
-      border-bottom: 1px solid #e6d59b;
-      font-size: 16px;
-    }
-    #leaderboard li.you {
-      font-weight: bold;
-      color: #b45309;
-      background-color: #fff2a6;
-      border-radius: 4px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<title>Кликер</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #FDE68A, #F59E0B);
+    margin: 0; padding: 40px 0;
+    display: flex; justify-content: center; align-items: flex-start;
+    min-height: 100vh;
+    color: #333;
+  }
+  #container {
+    background: #fff7d1;
+    border-radius: 12px;
+    padding: 20px 30px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  }
+  h1 {
+    text-align: center;
+    margin: 0 0 20px 0;
+    color: #b45309;
+  }
+  #score-display {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  #click-btn {
+    width: 100%;
+    padding: 15px 0;
+    font-size: 22px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    background-color: #f59e0b;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.25s ease;
+  }
+  #click-btn:hover {
+    background-color: #d97706;
+  }
+  #settings-btn {
+    margin: 15px auto 30px auto;
+    display: block;
+    background: transparent;
+    border: none;
+    color: #b45309;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  #settings-btn:hover {
+    text-decoration: underline;
+  }
+  #upgrades {
+    background: #fff3c4;
+    border-radius: 12px;
+    padding: 15px 20px;
+    margin-bottom: 30px;
+  }
+  #upgrades h2 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #92400e;
+    font-size: 20px;
+  }
+  .upgrade-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .upgrade-item button {
+    background: #a16207;
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.25s ease;
+  }
+  .upgrade-item button:disabled {
+    background: #c7b299;
+    cursor: default;
+  }
+  .upgrade-item button:hover:not(:disabled) {
+    background: #78350f;
+  }
+  #leaderboard {
+    background: #fff3c4;
+    border-radius: 12px;
+    padding: 15px 20px;
+  }
+  #leaderboard h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #92400e;
+    font-size: 20px;
+    text-align: center;
+  }
+  #leaderboard-list {
+    list-style: none;
+    margin: 0; padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  #leaderboard-list li {
+    padding: 6px 10px;
+    border-bottom: 1px solid #e6d59b;
+    font-size: 16px;
+  }
+  #leaderboard-list li.you {
+    background: #fff2a6;
+    font-weight: 700;
+    color: #b45309;
+    border-radius: 6px;
+  }
+  #nickname-modal {
+    position: fixed;
+    top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+  }
+  #nickname-modal.hidden {
+    display: none;
+  }
+  #nickname-modal-content {
+    background: #fff7d1;
+    border-radius: 12px;
+    padding: 30px 35px;
+    max-width: 360px;
+    width: 90%;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  }
+  #nickname-modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #b45309;
+  }
+  #nickname-input {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 18px;
+    border-radius: 8px;
+    border: 2px solid #f59e0b;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+  }
+  #nickname-error {
+    color: red;
+    font-size: 14px;
+    min-height: 18px;
+    margin-bottom: 12px;
+  }
+  #nickname-save-btn {
+    background: #f59e0b;
+    border: none;
+    border-radius: 10px;
+    width: 100%;
+    padding: 12px 0;
+    font-weight: 700;
+    font-size: 18px;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.25s ease;
+  }
+  #nickname-save-btn:hover {
+    background-color: #d97706;
+  }
+</style>
 </head>
 <body>
-  <h1>Кликер</h1>
+  <div id="container">
+    <h1>Кликер</h1>
+    <div id="score-display">Клики: <span id="score">0</span></div>
+    <button id="click-btn">Клик!</button>
+    <button id="settings-btn">Настройки ника</button>
 
-  <div id="clicker-container">
-    <div class="info">Клики: <span id="score">0</span></div>
-    <button id="clickButton">Клик!</button>
-    <button id="settingsButton">Настройки</button>
+    <div id="upgrades">
+      <h2>Апгрейды</h2>
+      <div id="upgrades-list"></div>
+    </div>
 
     <div id="leaderboard">
-      <h3>Топ игроков</h3>
+      <h2>Топ-3 игроков</h2>
       <ul id="leaderboard-list"></ul>
     </div>
   </div>
 
-  <div id="nickname-modal" style="display:none;">
-    <div>
-      <label for="nickname-input">Введите ваш никнейм</label>
+  <div id="nickname-modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="nickname-modal-title">
+    <div id="nickname-modal-content">
+      <h2 id="nickname-modal-title">Введите ваш никнейм</h2>
       <input type="text" id="nickname-input" maxlength="16" autocomplete="off" />
       <div id="nickname-error"></div>
-      <button id="nickname-submit">Сохранить</button>
+      <button id="nickname-save-btn">Сохранить</button>
     </div>
   </div>
 
-  <script>
-    let score = 0;
-    let nickname = null;
+<script>
+(() => {
 
-    const scoreSpan = document.getElementById('score');
-    const clickButton = document.getElementById('clickButton');
-    const settingsButton = document.getElementById('settingsButton');
-    const nicknameModal = document.getElementById('nickname-modal');
-    const nicknameInput = document.getElementById('nickname-input');
-    const nicknameError = document.getElementById('nickname-error');
-    const nicknameSubmit = document.getElementById('nickname-submit');
-    const leaderboardList = document.getElementById('leaderboard-list');
+  let score = 0;
+  let clicksPerClick = 1;
+  let clickSpeedMultiplier = 1;
+  let upgrades = {
+    clickPower: 0,
+    clickSpeed: 0,
+  };
+  let nickname = null;
 
-    const STORAGE_NICKNAME = 'clicker_nickname';
-    const STORAGE_SCORE = 'clicker_score';
-    const STORAGE_LEADERBOARD = 'clicker_leaderboard';
+  // Селекторы
+  const scoreEl = document.getElementById('score');
+  const clickBtn = document.getElementById('click-btn');
+  const settingsBtn = document.getElementById('settings-btn');
+  const upgradesListEl = document.getElementById('upgrades-list');
+  const leaderboardListEl = document.getElementById('leaderboard-list');
+  const nicknameModal = document.getElementById('nickname-modal');
+  const nicknameInput = document.getElementById('nickname-input');
+  const nicknameError = document.getElementById('nickname-error');
+  const nicknameSaveBtn = document.getElementById('nickname-save-btn');
 
-    function loadData() {
-      nickname = localStorage.getItem(STORAGE_NICKNAME);
-      score = parseInt(localStorage.getItem(STORAGE_SCORE)) || 0;
-      if (!nickname) {
-        showNicknameModal();
-      } else {
-        updateScoreUI();
-        updateLeaderboard();
+
+  const STORAGE_KEYS = {
+    score: 'clicker_score',
+    nickname: 'clicker_nickname',
+    upgrades: 'clicker_upgrades',
+    leaderboard: 'clicker_leaderboard',
+  };
+
+
+  const UPGRADES_CONFIG = {
+    clickPower: {
+      name: 'Увеличение клика',
+      baseCost: 50,
+      costMultiplier: 1.6,
+      getCost(level) {
+        return Math.floor(this.baseCost * Math.pow(this.costMultiplier, level));
+      },
+      effect(level) {
+        return level * 1;
+      }
+    },
+    clickSpeed: {
+      name: 'Ускорение кликов',
+      baseCost: 100,
+      costMultiplier: 1.8,
+      getCost(level) {
+        return Math.floor(this.baseCost * Math.pow(this.costMultiplier, level));
+      },
+      effect(level) {
+        return 1 + level * 0.2;
       }
     }
+  };
 
-    function saveData() {
-      localStorage.setItem(STORAGE_NICKNAME, nickname);
-      localStorage.setItem(STORAGE_SCORE, score);
-      updateLeaderboard(true);
+
+  function loadData() {
+    score = parseInt(localStorage.getItem(STORAGE_KEYS.score)) || 0;
+    nickname = localStorage.getItem(STORAGE_KEYS.nickname);
+    let savedUpgrades = localStorage.getItem(STORAGE_KEYS.upgrades);
+    if (savedUpgrades) {
+      upgrades = JSON.parse(savedUpgrades);
+    } else {
+      upgrades = {clickPower: 0, clickSpeed: 0};
     }
+  }
 
-    function updateScoreUI() {
-      scoreSpan.textContent = score;
-    }
 
-    function showNicknameModal() {
-      nicknameModal.style.display = 'flex';
-      nicknameInput.value = nickname || '';
-      nicknameError.textContent = '';
-      nicknameInput.focus();
-    }
+  function saveData() {
+    localStorage.setItem(STORAGE_KEYS.score, score);
+    localStorage.setItem(STORAGE_KEYS.nickname, nickname);
+    localStorage.setItem(STORAGE_KEYS.upgrades, JSON.stringify(upgrades));
+    updateLeaderboardData();
+  }
 
-    function validateNickname(name) {
-      if (!name) return 'Никнейм не может быть пустым';
-      if (name.length < 3) return 'Никнейм должен быть минимум 3 символа';
-      if (name.length > 16) return 'Никнейм должен быть не больше 16 символов';
-      if (!/^[a-zA-Z0-9_]+$/.test(name)) return 'Никнейм может содержать только латинские буквы, цифры и _';
-      return '';
-    }
 
-    function updateLeaderboard(removeOld = false, oldNick = null) {
-      let leaderboard = JSON.parse(localStorage.getItem(STORAGE_LEADERBOARD)) || [];
+  function updateScoreUI() {
+    scoreEl.textContent = score.toLocaleString('ru-RU');
+  }
 
-      if (removeOld && oldNick) {
-        leaderboard = leaderboard.filter(p => p.nick !== oldNick);
-      }
 
-      leaderboard = leaderboard.filter(p => p.nick !== nickname);
-      leaderboard.push({ nick: nickname, score: score });
-      leaderboard.sort((a,b) => b.score - a.score);
-      leaderboard = leaderboard.slice(0, 10);
-      localStorage.setItem(STORAGE_LEADERBOARD, JSON.stringify(leaderboard));
-      renderLeaderboard(leaderboard);
-    }
+  function renderUpgrades() {
+    upgradesListEl.innerHTML = '';
 
-    function renderLeaderboard(leaderboard) {
-      leaderboardList.innerHTML = '';
-      for (const p of leaderboard) {
-        const li = document.createElement('li');
-        li.textContent = `${p.nick}: ${p.score}`;
-        if (p.nick === nickname) {
-          li.classList.add('you');
+    for (const key in UPGRADES_CONFIG) {
+      const conf = UPGRADES_CONFIG[key];
+      const level = upgrades[key] || 0;
+      const cost = conf.getCost(level);
+
+      const div = document.createElement('div');
+      div.className = 'upgrade-item';
+
+      const info = document.createElement('div');
+      info.textContent = `${conf.name} (Уровень: ${level}) - Цена: ${cost.toLocaleString('ru-RU')} кликов`;
+
+      const btn = document.createElement('button');
+      btn.textContent = 'Купить';
+      btn.disabled = cost > score;
+      btn.onclick = () => {
+        if (score >= cost) {
+          score -= cost;
+          upgrades[key]++;
+          updateEffects();
+          updateScoreUI();
+          renderUpgrades();
+          saveData();
         }
-        leaderboardList.appendChild(li);
-      }
+      };
+
+      div.appendChild(info);
+      div.appendChild(btn);
+      upgradesListEl.appendChild(div);
+    }
+  }
+
+
+  function updateEffects() {
+    clicksPerClick = 1 + UPGRADES_CONFIG.clickPower.effect(upgrades.clickPower);
+    clickSpeedMultiplier = UPGRADES_CONFIG.clickSpeed.effect(upgrades.clickSpeed);
+  }
+
+
+  function updateLeaderboardData() {
+    if (!nickname) return;
+
+
+    let leaderboard = JSON.parse(localStorage.getItem(STORAGE_KEYS.leaderboard) || '[]');
+
+
+    const existingIndex = leaderboard.findIndex(e => e.nickname === nickname);
+    if (existingIndex >= 0) {
+      leaderboard[existingIndex].score = score;
+    } else {
+      leaderboard.push({nickname, score});
     }
 
-    clickButton.addEventListener('click', () => {
-      if (!nickname) {
-        showNicknameModal();
-        return;
+    const uniqueMap = new Map();
+    for (const entry of leaderboard) {
+      if (!uniqueMap.has(entry.nickname) || uniqueMap.get(entry.nickname).score < entry.score) {
+        uniqueMap.set(entry.nickname, entry);
       }
-      score++;
+    }
+    leaderboard = Array.from(uniqueMap.values());
+
+
+    leaderboard.sort((a,b) => b.score - a.score);
+    leaderboard = leaderboard.slice(0, 3);
+    localStorage.setItem(STORAGE_KEYS.leaderboard, JSON.stringify(leaderboard));
+    renderLeaderboard(leaderboard);
+  }
+  function renderLeaderboard(leaderboard) {
+    leaderboardListEl.innerHTML = '';
+
+    leaderboard.forEach(({nickname: n, score: s}, i) => {
+      const li = document.createElement('li');
+      li.textContent = `${i+1}. ${n} — ${s.toLocaleString('ru-RU')} кликов`;
+      if (n === nickname) {
+        li.classList.add('you');
+      }
+      leaderboardListEl.appendChild(li);
+    });
+
+
+    if (!leaderboard.some(e => e.nickname === nickname)) {
+
+      let fullBoard = JSON.parse(localStorage.getItem(STORAGE_KEYS.leaderboard) || '[]');
+      if (!fullBoard.length || !nickname) return;
+    }
+  }
+
+  function validateNickname(name) {
+    if (!name) return "Никнейм не может быть пустым";
+    if (name.length < 2) return "Никнейм должен быть минимум 2 символа";
+    if (name.length > 16) return "Никнейм должен быть не более 16 символов";
+    if (!/^[\wА-Яа-яЁё0-9_-]+$/.test(name)) return "Никнейм содержит недопустимые символы";
+    return null;
+  }
+
+  // Показать модалку ввода ника
+  function showNicknameModal() {
+    nicknameInput.value = nickname || '';
+    nicknameError.textContent = '';
+    nicknameModal.classList.remove('hidden');
+    nicknameInput.focus();
+  }
+
+
+  function hideNicknameModal() {
+    nicknameModal.classList.add('hidden');
+  }
+
+
+  function onSaveNickname() {
+    const val = nicknameInput.value.trim();
+    const err = validateNickname(val);
+    if (err) {
+      nicknameError.textContent = err;
+      return;
+    }
+    nickname = val;
+    saveData();
+    hideNicknameModal();
+    updateLeaderboardData();
+  }
+
+
+  let lastClickTime = 0;
+  clickBtn.addEventListener('click', () => {
+    const now = Date.now();
+    const minDelay = 300 / clickSpeedMultiplier;
+    if (now - lastClickTime >= minDelay) {
+      score += clicksPerClick;
       updateScoreUI();
       saveData();
-      clickButton.classList.add('clicked');
-      setTimeout(() => clickButton.classList.remove('clicked'), 100);
-    });
-
-    settingsButton.addEventListener('click', () => {
-      showNicknameModal();
-    });
-
-    nicknameSubmit.addEventListener('click', () => {
-      const name = nicknameInput.value.trim();
-      const error = validateNickname(name);
-      if (error) {
-        nicknameError.textContent = error;
-        return;
-      }
-      const oldNick = nickname;
-      nickname = name;
-      nicknameError.textContent = '';
-      nicknameModal.style.display = 'none';
-      saveData();
-      if (oldNick && oldNick !== nickname) {
-        updateLeaderboard(true, oldNick);
-      } else {
-        updateLeaderboard();
-      }
-    });
-
+      lastClickTime = now;
+    }
+  });
+  settingsBtn.addEventListener('click', showNicknameModal);
+  nicknameSaveBtn.addEventListener('click', onSaveNickname);
+  nicknameInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') onSaveNickname();
+  });
+  function init() {
     loadData();
-  </script>
+    updateEffects();
+    updateScoreUI();
+    renderUpgrades();
+    updateLeaderboardData();
+    if (!nickname) {
+      showNicknameModal();
+    }
+  }
+
+  init();
+
+})();
+</script>
+
 </body>
 </html>
