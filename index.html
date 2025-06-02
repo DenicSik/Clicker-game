@@ -275,11 +275,13 @@ function renderLeaderboard() {
   const topPlayers = sorted.slice(0, 3);
   const yourEntry = sorted.find(([name]) => name === nickname);
 
+  // Формируем список топ-3 игроков
   const listItems = topPlayers
     .map(([name, score], index) => `<li>${index + 1} <strong>${name}</strong>: ${formatNumber(score)}</li>`)
     .join("");
 
   let playerText = "";
+  // Если тебя нет в топ-3, но есть в списке — показываем твою позицию отдельно
   if (!topPlayers.some(([name]) => name === nickname) && yourEntry) {
     const rank = sorted.findIndex(([name]) => name === nickname) + 1;
     playerText = `<li style="margin-top:12px;border-top:1px solid #ccc;padding-top:12px;">${rank} <strong>${yourEntry[0]}</strong>: ${formatNumber(yourEntry[1])}</li>`;
