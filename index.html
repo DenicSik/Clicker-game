@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Кликер</title>
+  <title>кликер</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -84,85 +84,166 @@
       transform: scale(1.2);
       z-index: 1;
     }
+
+    .frame {
+      display: none;
+      margin-top: 30px;
+      padding: 20px;
+      background: #112233;
+      border: 2px solid #00ffff;
+      border-radius: 12px;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+      font-size: 18px;
+      color: #00ffff;
+      text-shadow: 0 0 5px #00ffffaa;
+    }
   </style>
 </head>
 <body>
-  <h1>Кликер</h1>
+  <h1>кликер</h1>
 
   <div class="menu">
-    <button>Меню</button>
-    <button>Настройки</button>
-    <button>Выход</button>
+    <button id="btnEggs">Яйца</button>
+    <button id="btnInventory">Инвентарь</button>
+    <button id="btnSettings">Настройки</button>
   </div>
 
-  <div class="info">Очки: <span id="score">0</span></div>
-  <button id="clickButton">Кликни!</button>
-  <div class="info">Сила клика: <span id="clickPower">1</span></div>
-  <button id="upgradeButton">Улучшить (10 очков)</button>
+  <div id="frameEggs" class="frame">Это окно Яиц 🥚</div>
+  <div id="frameInventory" class="frame">Это окно Инвентаря 🎒</div>
+  <div id="frameSettings" class="frame">Это окно Настроек ⚙️</div>
+
+  <div id="clickerUI">
+    <div class="info">Очки: <span id="score">0</span></div>
+    <button id="clickButton">Кликни!</button>
+    <div class="info">Сила клика: <span id="clickPower">1</span></div>
+    <button id="upgradeButton">Улучшить (10 очков)</button>
+  </div>
 
   <script>
-    let score = 0;
-    let clickPower = 1;
+    let score = 0
+    let clickPower = 1
 
-    const scoreEl = document.getElementById('score');
-    const clickPowerEl = document.getElementById('clickPower');
-    const clickButton = document.getElementById('clickButton');
-    const upgradeButton = document.getElementById('upgradeButton');
+    const scoreEl = document.getElementById('score')
+    const clickPowerEl = document.getElementById('clickPower')
+    const clickButton = document.getElementById('clickButton')
+    const upgradeButton = document.getElementById('upgradeButton')
+
+    const btnEggs = document.getElementById('btnEggs')
+    const btnInventory = document.getElementById('btnInventory')
+    const btnSettings = document.getElementById('btnSettings')
+
+    const frameEggs = document.getElementById('frameEggs')
+    const frameInventory = document.getElementById('frameInventory')
+    const frameSettings = document.getElementById('frameSettings')
+
+    const clickerUI = document.getElementById('clickerUI')
+
+    let activeMenu = null
 
     function formatNumber(num) {
-      return num.toLocaleString('en-US');
+      return num.toLocaleString('en-US')
     }
 
     function saveData() {
       const data = {
         score: score,
-        clickPower: clickPower,
-      };
-      localStorage.setItem('clickerSave', JSON.stringify(data));
+        clickPower: clickPower
+      }
+      localStorage.setItem('clickerSave', JSON.stringify(data))
     }
 
     function loadData() {
-      const data = localStorage.getItem('clickerSave');
+      const data = localStorage.getItem('clickerSave')
       if (data) {
-        const parsed = JSON.parse(data);
-        score = parsed.score || 0;
-        clickPower = parsed.clickPower || 1;
+        const parsed = JSON.parse(data)
+        score = parsed.score || 0
+        clickPower = parsed.clickPower || 1
       }
     }
 
     function animateButton(button) {
-      button.classList.add('clicked');
+      button.classList.add('clicked')
       setTimeout(() => {
-        button.classList.remove('clicked');
-      }, 100);
+        button.classList.remove('clicked')
+      }, 100)
     }
 
     function updateUI() {
-      scoreEl.textContent = formatNumber(score);
-      clickPowerEl.textContent = formatNumber(clickPower);
+      scoreEl.textContent = formatNumber(score)
+      clickPowerEl.textContent = formatNumber(clickPower)
     }
 
+    function showMenu(menu) {
+      if (activeMenu === menu) {
+        activeMenu = null
+        btnEggs.textContent = 'Яйца'
+        btnInventory.textContent = 'Инвентарь'
+        btnSettings.textContent = 'Настройки'
+
+        frameEggs.style.display = 'none'
+        frameInventory.style.display = 'none'
+        frameSettings.style.display = 'none'
+
+        clickerUI.style.display = 'block'
+      } else {
+        activeMenu = menu
+
+        btnEggs.textContent = 'Яйца'
+        btnInventory.textContent = 'Инвентарь'
+        btnSettings.textContent = 'Настройки'
+
+        if (menu === 'eggs') btnEggs.textContent = 'Обратно'
+        else if (menu === 'inventory') btnInventory.textContent = 'Обратно'
+        else if (menu === 'settings') btnSettings.textContent = 'Обратно'
+
+        frameEggs.style.display = 'none'
+        frameInventory.style.display = 'none'
+        frameSettings.style.display = 'none'
+
+        if (menu === 'eggs') frameEggs.style.display = 'block'
+        else if (menu === 'inventory') frameInventory.style.display = 'block'
+        else if (menu === 'settings') frameSettings.style.display = 'block'
+
+        clickerUI.style.display = 'none'
+      }
+    }
+
+    btnEggs.addEventListener('click', () => {
+      showMenu('eggs')
+    })
+
+    btnInventory.addEventListener('click', () => {
+      showMenu('inventory')
+    })
+
+    btnSettings.addEventListener('click', () => {
+      showMenu('settings')
+    })
+
     clickButton.addEventListener('click', () => {
-      score += clickPower;
-      updateUI();
-      animateButton(clickButton);
-      saveData();
-    });
+      score += clickPower
+      updateUI()
+      animateButton(clickButton)
+      saveData()
+    })
 
     upgradeButton.addEventListener('click', () => {
-      animateButton(upgradeButton);
+      animateButton(upgradeButton)
       if (score >= 10) {
-        score -= 10;
-        clickPower++;
-        updateUI();
-        saveData();
+        score -= 10
+        clickPower++
+        updateUI()
+        saveData()
       } else {
-        alert('Недостаточно очков для улучшения!');
+        alert('Недостаточно очков для улучшения!')
       }
-    });
+    })
 
-    loadData();
-    updateUI();
+    loadData()
+    updateUI()
   </script>
 </body>
 </html>
