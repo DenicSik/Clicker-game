@@ -2,57 +2,50 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>кликер</title>
+  <title>Кликер</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: Arial, sans-serif;
       text-align: center;
       padding-top: 50px;
+      background-color: #222;
+      color: #eee;
       margin: 0;
-      background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
-      color: #ffffff;
-    }
-
-    h1 {
-      color: #00ffff;
-      text-shadow: 0 0 10px #00ffff;
     }
 
     button {
-      transition: transform 0.1s ease, background-color 0.2s ease, box-shadow 0.2s ease;
-      background-color: #1f1f1f;
-      color: #00ffff;
-      border: 2px solid #00ffff;
-      border-radius: 10px;
+      transition: transform 0.1s ease;
       cursor: pointer;
-      box-shadow: 0 0 10px #00ffff55;
+      border: none;
+      border-radius: 6px;
+      background-color: #3498db;
+      color: white;
+      padding: 10px 18px;
+      font-size: 16px;
+      user-select: none;
     }
 
-    button:hover {
-      background-color: #00ffff22;
-      box-shadow: 0 0 15px #00ffff;
-    }
-
-    .clicked {
+    button.clicked {
       transform: scale(1.2);
     }
 
     #clickButton {
-      font-size: 24px;
-      padding: 20px 40px;
+      font-size: 28px;
+      padding: 25px 50px;
       margin: 20px;
+      background-color: #27ae60;
     }
 
     #upgradeButton {
-      padding: 10px 20px;
       font-size: 18px;
+      margin: 15px 0 0 0;
+      background-color: #2980b9;
+      width: 260px;
     }
 
     .info {
-      font-size: 20px;
+      font-size: 22px;
       margin: 10px;
-      color: #ffffff;
-      text-shadow: 0 0 3px #00ffff88;
     }
 
     .menu {
@@ -60,50 +53,53 @@
       top: 20px;
       right: 20px;
       display: flex;
-      gap: 10px;
+      gap: 12px;
       z-index: 10;
     }
 
     .menu button {
-      padding: 8px 14px;
-      font-size: 14px;
-      background-color: #111;
-      border-color: #0ff;
-      color: #0ff;
-      border-style: solid;
-      border-width: 2px;
-      border-radius: 6px;
+      padding: 10px 16px;
+      font-size: 15px;
+      background-color: #34495e;
+      color: #ddd;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      width: 100px;
     }
 
     .menu:hover button:not(:hover) {
       transform: scale(0.9);
-      opacity: 0.7;
+      opacity: 0.6;
     }
 
     .menu button:hover {
       transform: scale(1.2);
       z-index: 1;
+      background-color: #1abc9c;
+      color: #fff;
     }
 
     .frame {
-      display: none;
-      margin-top: 30px;
+      margin-top: 20px;
+      background: #333;
+      border-radius: 10px;
       padding: 20px;
-      background: #112233;
-      border: 2px solid #00ffff;
-      border-radius: 12px;
-      max-width: 400px;
+      width: 350px;
       margin-left: auto;
       margin-right: auto;
-      text-align: center;
-      font-size: 18px;
-      color: #00ffff;
-      text-shadow: 0 0 5px #00ffffaa;
+      min-height: 120px;
+      color: #ccc;
+      display: none;
+      user-select: none;
     }
+
+    .frame.active {
+      display: block;
+    }
+
   </style>
 </head>
 <body>
-  <h1>кликер</h1>
+  <h1>Кликер</h1>
 
   <div class="menu">
     <button id="btnEggs">Яйца</button>
@@ -111,139 +107,178 @@
     <button id="btnSettings">Настройки</button>
   </div>
 
-  <div id="frameEggs" class="frame">Это окно Яиц 🥚</div>
-  <div id="frameInventory" class="frame">Это окно Инвентаря 🎒</div>
-  <div id="frameSettings" class="frame">Это окно Настроек ⚙️</div>
+  <div class="info">Очки: <span id="score">0</span></div>
+  <button id="clickButton">Кликни!</button>
+  <div class="info">Сила клика: <span id="clickPower">1</span></div>
+  <div class="info">Кулдаун клика: <span id="clickCooldownDisplay">1.5</span> сек</div>
+  <button id="upgradeButton">Уменьшить КД (1.5 → 1.4) — 1,000</button>
 
-  <div id="clickerUI">
-    <div class="info">Очки: <span id="score">0</span></div>
-    <button id="clickButton">Кликни!</button>
-    <div class="info">Сила клика: <span id="clickPower">1</span></div>
-    <button id="upgradeButton">Улучшить (10 очков)</button>
-  </div>
+  <div id="frameEggs" class="frame">Здесь будет информация про Яйца.</div>
+  <div id="frameInventory" class="frame">Здесь будет Инвентарь.</div>
+  <div id="frameSettings" class="frame">Настройки игры появятся здесь.</div>
 
-  <script>
-    let score = 0
-    let clickPower = 1
+<script>
+  let score = 0
+  let clickPower = 1
 
-    const scoreEl = document.getElementById('score')
-    const clickPowerEl = document.getElementById('clickPower')
-    const clickButton = document.getElementById('clickButton')
-    const upgradeButton = document.getElementById('upgradeButton')
+  const baseCooldown = 1.5
+  const minCooldown = 0.6
 
-    const btnEggs = document.getElementById('btnEggs')
-    const btnInventory = document.getElementById('btnInventory')
-    const btnSettings = document.getElementById('btnSettings')
+  let clickCooldown = baseCooldown
+  let lastClickTime = 0
 
-    const frameEggs = document.getElementById('frameEggs')
-    const frameInventory = document.getElementById('frameInventory')
-    const frameSettings = document.getElementById('frameSettings')
+  let cdLevels = []
+  let cdUpgradeLevel = 0
+  let currentUpgradePrice = 1000
 
-    const clickerUI = document.getElementById('clickerUI')
+  function formatNumber(num) {
+    return num.toLocaleString('en-US')
+  }
 
-    let activeMenu = null
-
-    function formatNumber(num) {
-      return num.toLocaleString('en-US')
+  function generateCdLevels() {
+    let price = 1000
+    let cd = baseCooldown
+    cdLevels = []
+    while (cd > minCooldown + 0.001) {
+      const nextCd = +(cd - 0.1).toFixed(1)
+      cdLevels.push({from: cd, to: nextCd, price})
+      price *= 10
+      cd = nextCd
     }
+  }
 
-    function saveData() {
-      const data = {
-        score: score,
-        clickPower: clickPower
-      }
-      localStorage.setItem('clickerSave', JSON.stringify(data))
+  generateCdLevels()
+
+  const scoreEl = document.getElementById('score')
+  const clickPowerEl = document.getElementById('clickPower')
+  const clickButton = document.getElementById('clickButton')
+  const upgradeButton = document.getElementById('upgradeButton')
+  const clickCooldownDisplay = document.getElementById('clickCooldownDisplay')
+
+  const btnEggs = document.getElementById('btnEggs')
+  const btnInventory = document.getElementById('btnInventory')
+  const btnSettings = document.getElementById('btnSettings')
+
+  const frameEggs = document.getElementById('frameEggs')
+  const frameInventory = document.getElementById('frameInventory')
+  const frameSettings = document.getElementById('frameSettings')
+
+  function toggleFrame(button, frame) {
+    if (button.textContent === 'обратно') {
+      hideAllFrames()
+      resetMenuButtons()
+      button.textContent = button.dataset.origText
+    } else {
+      hideAllFrames()
+      resetMenuButtons()
+      frame.classList.add('active')
+      button.textContent = 'обратно'
     }
+  }
 
-    function loadData() {
-      const data = localStorage.getItem('clickerSave')
-      if (data) {
-        const parsed = JSON.parse(data)
-        score = parsed.score || 0
-        clickPower = parsed.clickPower || 1
-      }
-    }
+  function hideAllFrames() {
+    frameEggs.classList.remove('active')
+    frameInventory.classList.remove('active')
+    frameSettings.classList.remove('active')
+  }
 
-    function animateButton(button) {
-      button.classList.add('clicked')
-      setTimeout(() => {
-        button.classList.remove('clicked')
-      }, 100)
-    }
-
-    function updateUI() {
-      scoreEl.textContent = formatNumber(score)
-      clickPowerEl.textContent = formatNumber(clickPower)
-    }
-
-    function showMenu(menu) {
-      if (activeMenu === menu) {
-        activeMenu = null
-        btnEggs.textContent = 'Яйца'
-        btnInventory.textContent = 'Инвентарь'
-        btnSettings.textContent = 'Настройки'
-
-        frameEggs.style.display = 'none'
-        frameInventory.style.display = 'none'
-        frameSettings.style.display = 'none'
-
-        clickerUI.style.display = 'block'
-      } else {
-        activeMenu = menu
-
-        btnEggs.textContent = 'Яйца'
-        btnInventory.textContent = 'Инвентарь'
-        btnSettings.textContent = 'Настройки'
-
-        if (menu === 'eggs') btnEggs.textContent = 'Обратно'
-        else if (menu === 'inventory') btnInventory.textContent = 'Обратно'
-        else if (menu === 'settings') btnSettings.textContent = 'Обратно'
-
-        frameEggs.style.display = 'none'
-        frameInventory.style.display = 'none'
-        frameSettings.style.display = 'none'
-
-        if (menu === 'eggs') frameEggs.style.display = 'block'
-        else if (menu === 'inventory') frameInventory.style.display = 'block'
-        else if (menu === 'settings') frameSettings.style.display = 'block'
-
-        clickerUI.style.display = 'none'
-      }
-    }
-
-    btnEggs.addEventListener('click', () => {
-      showMenu('eggs')
-    })
-
-    btnInventory.addEventListener('click', () => {
-      showMenu('inventory')
-    })
-
-    btnSettings.addEventListener('click', () => {
-      showMenu('settings')
-    })
-
-    clickButton.addEventListener('click', () => {
-      score += clickPower
-      updateUI()
-      animateButton(clickButton)
-      saveData()
-    })
-
-    upgradeButton.addEventListener('click', () => {
-      animateButton(upgradeButton)
-      if (score >= 10) {
-        score -= 10
-        clickPower++
-        updateUI()
-        saveData()
-      } else {
-        alert('Недостаточно очков для улучшения!')
+  function resetMenuButtons() {
+    ;[btnEggs, btnInventory, btnSettings].forEach(btn => {
+      if (btn.textContent === 'обратно') {
+        btn.textContent = btn.dataset.origText
       }
     })
+  }
 
-    loadData()
+  btnEggs.dataset.origText = 'Яйца'
+  btnInventory.dataset.origText = 'Инвентарь'
+  btnSettings.dataset.origText = 'Настройки'
+
+  btnEggs.addEventListener('click', () => toggleFrame(btnEggs, frameEggs))
+  btnInventory.addEventListener('click', () => toggleFrame(btnInventory, frameInventory))
+  btnSettings.addEventListener('click', () => toggleFrame(btnSettings, frameSettings))
+
+  function animateButton(button) {
+    button.classList.add('clicked')
+    setTimeout(() => {
+      button.classList.remove('clicked')
+    }, 100)
+  }
+
+  function updateUI() {
+    scoreEl.textContent = formatNumber(score)
+    clickPowerEl.textContent = formatNumber(clickPower)
+    clickCooldownDisplay.textContent = clickCooldown.toFixed(1)
+    updateCdUpgradeButton()
+  }
+
+  function saveData() {
+    const data = {
+      score,
+      clickPower,
+      clickCooldown,
+      cdUpgradeLevel,
+      currentUpgradePrice,
+    }
+    localStorage.setItem('clickerSave', JSON.stringify(data))
+  }
+
+  function loadData() {
+    const data = localStorage.getItem('clickerSave')
+    if (data) {
+      const parsed = JSON.parse(data)
+      score = parsed.score || 0
+      clickPower = parsed.clickPower || 1
+      clickCooldown = parsed.clickCooldown || baseCooldown
+      cdUpgradeLevel = parsed.cdUpgradeLevel || 0
+      currentUpgradePrice = parsed.currentUpgradePrice || 1000
+    }
+  }
+
+  clickButton.addEventListener('click', () => {
+    const now = Date.now()
+    if (now - lastClickTime < clickCooldown * 1000) {
+      return
+    }
+    lastClickTime = now
+
+    score += clickPower
     updateUI()
-  </script>
+    animateButton(clickButton)
+    saveData()
+  })
+
+  upgradeButton.addEventListener('click', () => {
+    if (cdUpgradeLevel >= cdLevels.length) {
+      alert('Максимальный уровень КД достигнут')
+      return
+    }
+    if (score < currentUpgradePrice) {
+      alert('Недостаточно очков для улучшения КД!')
+      return
+    }
+    score -= currentUpgradePrice
+    clickCooldown = cdLevels[cdUpgradeLevel].to
+    cdUpgradeLevel++
+    currentUpgradePrice *= 3
+    updateUI()
+    saveData()
+    animateButton(upgradeButton)
+  })
+
+  function updateCdUpgradeButton() {
+    if (cdUpgradeLevel >= cdLevels.length) {
+      upgradeButton.textContent = 'Максимальный уровень КД достигнут'
+      upgradeButton.disabled = true
+      return
+    }
+    const lvl = cdUpgradeLevel
+    upgradeButton.textContent = `Уменьшить КД (${cdLevels[lvl].from} → ${cdLevels[lvl].to}) — ${formatNumber(currentUpgradePrice)}`
+    upgradeButton.disabled = score < currentUpgradePrice
+  }
+
+  loadData()
+  updateUI()
+</script>
 </body>
 </html>
