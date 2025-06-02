@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>Кликер</title>
+  <meta charset="UTF-8">
+  <title>Кликер с Лидербордом</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -84,9 +83,61 @@
       transform: scale(0.9);
       opacity: 0.7;
     }
+
+    #nickname-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    #nickname-modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+      text-align: center;
+      width: 300px;
+    }
+
+    #nickname-modal input {
+      width: 90%;
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    #leaderboard ul {
+      list-style: none;
+      padding: 0;
+      font-size: 18px;
+    }
+
+    #leaderboard li {
+      margin: 8px 0;
+    }
   </style>
 </head>
 <body>
+  <div id="nickname-modal">
+    <div id="nickname-modal-content">
+      <h2>Введите ник</h2>
+      <input type="text" id="nicknameInput" maxlength="16" />
+      <br>
+      <button id="submitNickname">Продолжить</button>
+      <p id="nicknameError" style="color:red;"></p>
+    </div>
+  </div>
+
   <h1>Кликер</h1>
 
   <div class="menu">
@@ -99,50 +150,13 @@
   <div id="clicker-container"></div>
 
   <script>
-    let username = localStorage.getItem('clickerUsername') || null;
-    let allPlayers = JSON.parse(localStorage.getItem('clickerLeaderboard')) || {};
-
-    function askForUsername() {
-      let container = document.getElementById('clicker-container');
-      container.innerHTML = `
-        <h2>Введите имя игрока</h2>
-        <input type="text" id="usernameInput" maxlength="16" />
-        <br />
-        <button id="submitUsername">Продолжить</button>
-        <p id="usernameError" style="color:red;"></p>
-      `;
-
-      document.getElementById('submitUsername').addEventListener('click', () => {
-        let input = document.getElementById('usernameInput').value.trim();
-        if (input.length < 3 || input.length > 16) {
-          document.getElementById('usernameError').textContent = 'Имя должно быть от 3 до 16 символов.';
-          return;
-        }
-        if (allPlayers[input]) {
-          document.getElementById('usernameError').textContent = 'Это имя уже занято.';
-          return;
-        }
-        username = input;
-        allPlayers[username] = 0;
-        localStorage.setItem('clickerUsername', username);
-        localStorage.setItem('clickerLeaderboard', JSON.stringify(allPlayers));
-        loadData();
-        renderClicker();
-      });
-    }
-
-    if (!username) {
-      askForUsername();
-    } else {
-      loadData();
-      renderClicker();
-    }
-
+    let nickname = "";
     let score = 0;
     let clickPower = 1;
     let clickCooldown = 1.5;
     let lastClickTime = 0;
     let cooldownStepIndex = 0;
+    let activeMenu = null;
 
     const cooldownSteps = [
       { from: 1.5, to: 1.4, price: 1000 },
@@ -153,16 +167,8 @@
       { from: 1.0, to: 0.9, price: 100000000 },
       { from: 0.9, to: 0.8, price: 1000000000 },
       { from: 0.8, to: 0.7, price: 10000000000 },
-      { from: 0.7, to: 0.6, price: 100000000000 },
+      { from: 0.7, to: 0.6, price: 100000000000 }
     ];
-
-    const clickerContainer = document.getElementById('clicker-container');
-    const eggsButton = document.getElementById('eggsButton');
-    const inventoryButton = document.getElementById('inventoryButton');
-    const settingsButton = document.getElementById('settingsButton');
-    const leaderboardButton = document.getElementById('leaderboardButton');
-
-    let activeMenu = null;
 
     function formatNumber(num) {
       return num.toLocaleString('en-US');
@@ -175,39 +181,56 @@
         clickCooldown,
         cooldownStepIndex,
       };
-      localStorage.setItem('clickerSave_' + username, JSON.stringify(data));
-      allPlayers[username] = score;
-      localStorage.setItem('clickerLeaderboard', JSON.stringify(allPlayers));
+      localStorage.setItem('clickerSave_' + nickname, JSON.stringify(data));
+
+      const leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '{}');
+      leaderboard[nickname] = score;
+      localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
     }
 
     function loadData() {
-      const data = localStorage.getItem('clickerSave_' + username);
-      if (data) {
-        const parsed = JSON.parse(data);
-        score = parsed.score || 0;
-        clickPower = parsed.clickPower || 1;
-        clickCooldown = parsed.clickCooldown || 1.5;
-        cooldownStepIndex = parsed.cooldownStepIndex || 0;
+      const data = JSON.parse(localStorage.getItem('clickerSave_' + nickname) || '{}');
+      score = data.score || 0;
+      clickPower = data.clickPower || 1;
+      clickCooldown = data.clickCooldown || 1.5;
+      cooldownStepIndex = data.cooldownStepIndex || 0;
+    }
+
+    function updateUI() {
+      const scoreEl = document.getElementById('score');
+      const clickPowerEl = document.getElementById('clickPower');
+      if (scoreEl) scoreEl.textContent = formatNumber(score);
+      if (clickPowerEl) clickPowerEl.textContent = formatNumber(clickPower);
+      updateCooldownButton();
+    }
+
+    function updateCooldownButton() {
+      const btn = document.getElementById('upgradeCooldownButton');
+      if (!btn) return;
+      if (cooldownStepIndex < cooldownSteps.length) {
+        const step = cooldownSteps[cooldownStepIndex];
+        btn.textContent = `Уменьшить КД: ${step.from.toFixed(1)} → ${step.to.toFixed(1)} (Цена: ${formatNumber(step.price)})`;
+        document.getElementById('clickCooldown').textContent = step.from.toFixed(1);
+      } else {
+        btn.textContent = "Максимальный уровень кулдауна";
+        document.getElementById('clickCooldown').textContent = cooldownSteps[cooldownSteps.length - 1].to.toFixed(1);
+        btn.disabled = true;
+        btn.style.backgroundColor = '#aaa';
+        btn.style.cursor = 'default';
       }
     }
 
-    function animateButton(button) {
-      button.classList.add('clicked');
-      setTimeout(() => {
-        button.classList.remove('clicked');
-      }, 100);
-    }
-
     function renderClicker() {
-      clickerContainer.innerHTML = \`
-        <div class="info">Игрок: \${username}</div>
-        <div class="info">Очки: <span id="score">\${formatNumber(score)}</span></div>
+      const container = document.getElementById('clicker-container');
+      container.innerHTML = `
+        <div class="info">Очки: <span id="score">${formatNumber(score)}</span></div>
         <button id="clickButton">Кликни!</button>
-        <div class="info">Сила клика: <span id="clickPower">\${formatNumber(clickPower)}</span></div>
+        <div class="info">Сила клика: <span id="clickPower">${formatNumber(clickPower)}</span></div>
         <button id="upgradeClickPowerButton">Улучшить клик (10 очков)</button>
-        <div class="info">Кулдаун клика (сек): <span id="clickCooldown">\${clickCooldown.toFixed(1)}</span></div>
+        <div class="info">Кулдаун клика (сек): <span id="clickCooldown">${clickCooldown.toFixed(1)}</span></div>
         <button id="upgradeCooldownButton"></button>
-      \`;
+      `;
+
       updateCooldownButton();
 
       document.getElementById('clickButton').addEventListener('click', () => {
@@ -216,7 +239,6 @@
         lastClickTime = now;
         score += clickPower;
         updateUI();
-        animateButton(document.getElementById('clickButton'));
         saveData();
       });
 
@@ -225,7 +247,6 @@
           score -= 10;
           clickPower++;
           updateUI();
-          animateButton(document.getElementById('upgradeClickPowerButton'));
           saveData();
         } else {
           alert('Недостаточно очков для улучшения!');
@@ -240,7 +261,6 @@
           clickCooldown = step.to;
           cooldownStepIndex++;
           updateUI();
-          animateButton(document.getElementById('upgradeCooldownButton'));
           saveData();
         } else {
           alert('Недостаточно очков для улучшения кулдауна!');
@@ -248,80 +268,69 @@
       });
     }
 
-    function updateCooldownButton() {
-      const btn = document.getElementById('upgradeCooldownButton');
-      if (!btn) return;
-      if (cooldownStepIndex < cooldownSteps.length) {
-        const step = cooldownSteps[cooldownStepIndex];
-        btn.textContent = \`Уменьшить КД: \${step.from.toFixed(1)} → \${step.to.toFixed(1)} (Цена: \${formatNumber(step.price)})\`;
-        document.getElementById('clickCooldown').textContent = step.from.toFixed(1);
-      } else {
-        btn.textContent = "Максимальный уровень кулдауна";
-        document.getElementById('clickCooldown').textContent = cooldownSteps[cooldownSteps.length - 1].to.toFixed(1);
-        btn.disabled = true;
-        btn.style.backgroundColor = '#aaa';
-        btn.style.cursor = 'default';
+    function renderLeaderboard() {
+      const board = JSON.parse(localStorage.getItem('leaderboard') || '{}');
+      const sorted = Object.entries(board).sort((a, b) => b[1] - a[1]);
+
+      const topPlayers = sorted.slice(0, 3);
+      const yourEntry = sorted.find(([name]) => name === nickname);
+
+      const listItems = topPlayers.map(([name, score]) => `<li><strong>${name}</strong>: ${formatNumber(score)}</li>`).join("");
+
+      let playerText = "";
+      if (!topPlayers.some(([name]) => name === nickname) && yourEntry) {
+        playerText = `<li style="margin-top:12px;border-top:1px solid #ccc;padding-top:12px;"><strong>${yourEntry[0]}</strong>: ${formatNumber(yourEntry[1])}</li>`;
       }
+
+      document.getElementById('clicker-container').innerHTML = `
+        <h2>Лидерборд</h2>
+        <ul>${listItems}${playerText}</ul>
+      `;
     }
 
-    function updateUI() {
-      const scoreEl = document.getElementById('score');
-      const clickPowerEl = document.getElementById('clickPower');
-      if(scoreEl) scoreEl.textContent = formatNumber(score);
-      if(clickPowerEl) clickPowerEl.textContent = formatNumber(clickPower);
-      updateCooldownButton();
+    function toggleMenu(section) {
+      activeMenu = activeMenu === section ? null : section;
+      if (activeMenu === null) renderClicker();
+      else if (activeMenu === "leaderboard") renderLeaderboard();
+      else document.getElementById('clicker-container').innerHTML = `<h2>${section}</h2><p>Контент в разработке.</p>`;
     }
 
-    const menuContent = {
-      eggs: "<h2>Яйца</h2><p>Здесь будут ваши яйца.</p>",
-      inventory: "<h2>Инвентарь</h2><p>Ваши предметы будут здесь.</p>",
-      settings: "<h2>Настройки</h2><p>Настройки игры.</p>",
-      leaderboard: () => {
-        let sorted = Object.entries(allPlayers).sort((a, b) => b[1] - a[1]);
-        let top = sorted.slice(0, 3);
-        let html = "<h2>Топ 3 игроков</h2><ol>";
-        top.forEach(([name, score]) => {
-          html += \`<li>\${name}: \${formatNumber(score)}</li>\`;
-        });
-        html += "</ol>";
-        if (!top.find(([name]) => name === username)) {
-          html += \`<p>Ваши очки: \${formatNumber(allPlayers[username] || 0)}</p>\`;
-        }
-        return html;
-      }
-    };
+    document.getElementById('eggsButton').addEventListener('click', () => toggleMenu('Яйца'));
+    document.getElementById('inventoryButton').addEventListener('click', () => toggleMenu('Инвентарь'));
+    document.getElementById('settingsButton').addEventListener('click', () => toggleMenu('Настройки'));
+    document.getElementById('leaderboardButton').addEventListener('click', () => toggleMenu('leaderboard'));
 
-    function toggleMenuSection(section, button) {
-      if (activeMenu === section) {
-        activeMenu = null;
+    document.getElementById('submitNickname').addEventListener('click', () => {
+      const input = document.getElementById('nicknameInput').value.trim();
+      const errorEl = document.getElementById('nicknameError');
+      const leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '{}');
+
+      if (input.length < 3 || input.length > 16) {
+        errorEl.textContent = "Ник должен быть от 3 до 16 символов.";
+        return;
+      }
+
+      if (leaderboard[input]) {
+        errorEl.textContent = "Такой ник уже используется.";
+        return;
+      }
+
+      nickname = input;
+      localStorage.setItem('nickname', nickname);
+      document.getElementById('nickname-modal').style.display = 'none';
+      loadData();
+      renderClicker();
+    });
+
+    window.addEventListener('load', () => {
+      const stored = localStorage.getItem('nickname');
+      if (stored) {
+        nickname = stored;
+        document.getElementById('nickname-modal').style.display = 'none';
+        loadData();
         renderClicker();
-        button.textContent = getButtonName(section);
-      } else {
-        if (activeMenu) {
-          const prevButton = document.getElementById(activeMenu + 'Button');
-          if (prevButton) prevButton.textContent = getButtonName(activeMenu);
-        }
-        activeMenu = section;
-        let content = typeof menuContent[section] === 'function' ? menuContent[section]() : menuContent[section];
-        clickerContainer.innerHTML = content;
-        button.textContent = 'Обратно';
       }
-    }
-
-    function getButtonName(section) {
-      switch (section) {
-        case 'eggs': return 'Яйца';
-        case 'inventory': return 'Инвентарь';
-        case 'settings': return 'Настройки';
-        case 'leaderboard': return 'Топ';
-        default: return section;
-      }
-    }
-
-    eggsButton.addEventListener('click', () => toggleMenuSection('eggs', eggsButton));
-    inventoryButton.addEventListener('click', () => toggleMenuSection('inventory', inventoryButton));
-    settingsButton.addEventListener('click', () => toggleMenuSection('settings', settingsButton));
-    leaderboardButton.addEventListener('click', () => toggleMenuSection('leaderboard', leaderboardButton));
+    });
   </script>
 </body>
 </html>
