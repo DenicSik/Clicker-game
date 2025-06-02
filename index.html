@@ -268,25 +268,28 @@
       });
     }
 
-    function renderLeaderboard() {
-      const board = JSON.parse(localStorage.getItem('leaderboard') || '{}');
-      const sorted = Object.entries(board).sort((a, b) => b[1] - a[1]);
+function renderLeaderboard() {
+  const board = JSON.parse(localStorage.getItem('leaderboard') || '{}');
+  const sorted = Object.entries(board).sort((a, b) => b[1] - a[1]);
 
-      const topPlayers = sorted.slice(0, 3);
-      const yourEntry = sorted.find(([name]) => name === nickname);
+  const topPlayers = sorted.slice(0, 3);
+  const yourEntry = sorted.find(([name]) => name === nickname);
 
-      const listItems = topPlayers.map(([name, score]) => `<li><strong>${name}</strong>: ${formatNumber(score)}</li>`).join("");
+  const listItems = topPlayers
+    .map(([name, score], index) => `<li>${index + 1}. <strong>${name}</strong>: ${formatNumber(score)}</li>`)
+    .join("");
 
-      let playerText = "";
-      if (!topPlayers.some(([name]) => name === nickname) && yourEntry) {
-        playerText = `<li style="margin-top:12px;border-top:1px solid #ccc;padding-top:12px;"><strong>${yourEntry[0]}</strong>: ${formatNumber(yourEntry[1])}</li>`;
-      }
+  let playerText = "";
+  if (!topPlayers.some(([name]) => name === nickname) && yourEntry) {
+    const rank = sorted.findIndex(([name]) => name === nickname) + 1;
+    playerText = `<li style="margin-top:12px;border-top:1px solid #ccc;padding-top:12px;">${rank}. <strong>${yourEntry[0]}</strong>: ${formatNumber(yourEntry[1])}</li>`;
+  }
 
-      document.getElementById('clicker-container').innerHTML = `
-        <h2>Лидерборд</h2>
-        <ul>${listItems}${playerText}</ul>
-      `;
-    }
+  document.getElementById('clicker-container').innerHTML = `
+    <h2>Лидерборд</h2>
+    <ul>${listItems}${playerText}</ul>
+  `;
+}
 
     function toggleMenu(section) {
       activeMenu = activeMenu === section ? null : section;
