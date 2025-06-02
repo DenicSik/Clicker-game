@@ -1,151 +1,79 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <title>Кликер с меню</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding-top: 50px;
-      background-color: #f0f0f0;
-      margin: 0;
-    }
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    text-align: center;
+    padding-top: 50px;
+    margin: 0;
+    background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+    color: #ffffff;
+  }
 
-    /* Кнопки игры */
-    button {
-      transition: transform 0.1s ease;
-    }
+  h1 {
+    color: #00ffff;
+    text-shadow: 0 0 10px #00ffff;
+  }
 
-    .clicked {
-      transform: scale(1.2);
-    }
+  button {
+    transition: transform 0.1s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    background-color: #1f1f1f;
+    color: #00ffff;
+    border: 2px solid #00ffff;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 0 10px #00ffff55;
+  }
 
-    #clickButton {
-      font-size: 24px;
-      padding: 20px 40px;
-      margin: 20px;
-    }
+  button:hover {
+    background-color: #00ffff22;
+    box-shadow: 0 0 15px #00ffff;
+  }
 
-    #upgradeButton {
-      padding: 10px 20px;
-      font-size: 18px;
-    }
+  .clicked {
+    transform: scale(1.2);
+  }
 
-    .info {
-      font-size: 20px;
-      margin: 10px;
-    }
+  #clickButton {
+    font-size: 24px;
+    padding: 20px 40px;
+    margin: 20px;
+  }
 
-    /* Мини-меню */
-    .menu {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      display: flex;
-      gap: 10px;
-      z-index: 10;
-    }
+  #upgradeButton {
+    padding: 10px 20px;
+    font-size: 18px;
+  }
 
-    .menu button {
-      padding: 8px 14px;
-      font-size: 14px;
-      border: none;
-      border-radius: 6px;
-      background-color: #3498db;
-      color: white;
-      cursor: pointer;
-      transition: transform 0.2s ease, opacity 0.2s ease;
-    }
+  .info {
+    font-size: 20px;
+    margin: 10px;
+    color: #ffffff;
+    text-shadow: 0 0 3px #00ffff88;
+  }
 
-    .menu:hover button:not(:hover) {
-      transform: scale(0.9);
-      opacity: 0.7;
-    }
+  .menu {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+  }
 
-    .menu button:hover {
-      transform: scale(1.2);
-      z-index: 1;
-    }
-  </style>
-</head>
-<body>
-  <h1>Кликер с меню</h1>
+  .menu button {
+    padding: 8px 14px;
+    font-size: 14px;
+    background-color: #111;
+    border-color: #0ff;
+    color: #0ff;
+  }
 
-  <div class="menu">
-    <button>Меню</button>
-    <button>Настройки</button>
-    <button>Выход</button>
-  </div>
+  .menu:hover button:not(:hover) {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
 
-  <div class="info">Очки: <span id="score">0</span></div>
-  <button id="clickButton">Кликни!</button>
-  <div class="info">Сила клика: <span id="clickPower">1</span></div>
-  <button id="upgradeButton">Улучшить (10 очков)</button>
-
-  <script>
-    let score = 0;
-    let clickPower = 1;
-
-    const scoreEl = document.getElementById('score');
-    const clickPowerEl = document.getElementById('clickPower');
-    const clickButton = document.getElementById('clickButton');
-    const upgradeButton = document.getElementById('upgradeButton');
-
-    function formatNumber(num) {
-      return num.toLocaleString('en-US');
-    }
-
-    function saveData() {
-      const data = {
-        score: score,
-        clickPower: clickPower,
-      };
-      localStorage.setItem('clickerSave', JSON.stringify(data));
-    }
-
-    function loadData() {
-      const data = localStorage.getItem('clickerSave');
-      if (data) {
-        const parsed = JSON.parse(data);
-        score = parsed.score || 0;
-        clickPower = parsed.clickPower || 1;
-      }
-    }
-
-    function animateButton(button) {
-      button.classList.add('clicked');
-      setTimeout(() => {
-        button.classList.remove('clicked');
-      }, 100);
-    }
-
-    function updateUI() {
-      scoreEl.textContent = formatNumber(score);
-      clickPowerEl.textContent = formatNumber(clickPower);
-    }
-
-    clickButton.addEventListener('click', () => {
-      score += clickPower;
-      updateUI();
-      animateButton(clickButton);
-      saveData();
-    });
-
-    upgradeButton.addEventListener('click', () => {
-      animateButton(upgradeButton);
-      if (score >= 10) {
-        score -= 10;
-        clickPower++;
-        updateUI();
-        saveData();
-      } else {
-        alert('Недостаточно очков для улучшения!');
-      }
-    });
-
-    loadData();
-    updateUI();
-  </script>
-</body>
-</html>
+  .menu button:hover {
+    transform: scale(1.2);
+    z-index: 1;
+  }
+</style>
