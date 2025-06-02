@@ -94,8 +94,7 @@
     <button id="settingsButton">Настройки</button>
   </div>
 
-  <div id="clicker-container">
-  </div>
+  <div id="clicker-container"></div>
 
   <script>
     let score = 0;
@@ -120,6 +119,8 @@
     const eggsButton = document.getElementById('eggsButton');
     const inventoryButton = document.getElementById('inventoryButton');
     const settingsButton = document.getElementById('settingsButton');
+
+    let activeMenu = null;
 
     function formatNumber(num) {
       return num.toLocaleString('en-US');
@@ -225,43 +226,34 @@
       updateCooldownButton();
     }
     const menuContent = {
-      eggs: `
-        <h2>Яйца</h2>
-        <p>Здесь будут ваши яйца.</p>
-        <button id="backFromEggs">Назад</button>
-      `,
-      inventory: `
-        <h2>Инвентарь</h2>
-        <p>Ваши предметы будут здесь.</p>
-        <button id="backFromInventory">Назад</button>
-      `,
-      settings: `
-        <h2>Настройки</h2>
-        <p>Настройки игры.</p>
-        <button id="backFromSettings">Назад</button>
-      `
+      eggs: `<h2>Яйца</h2><p>Здесь будут ваши яйца.</p>`,
+      inventory: `<h2>Инвентарь</h2><p>Ваши предметы будут здесь.</p>`,
+      settings: `<h2>Настройки</h2><p>Настройки игры.</p>`
     };
 
-    function showMenuSection(section) {
-      clickerContainer.innerHTML = menuContent[section];
-
-      document.getElementById(`backFrom${capitalize(section)}`).addEventListener('click', () => {
+    function toggleMenuSection(section, button) {
+      if (activeMenu === section) {
+        activeMenu = null;
         renderClicker();
-      });
+        button.textContent = capitalize(section);
+      } else {
+        if (activeMenu) {
+          const prevButton = document.getElementById(activeMenu + 'Button');
+          if (prevButton) prevButton.textContent = capitalize(activeMenu);
+        }
+        activeMenu = section;
+        clickerContainer.innerHTML = menuContent[section];
+        button.textContent = 'Обратно';
+      }
     }
 
     function capitalize(str) {
       return str.charAt(0).toUpperCase() + str.slice(1);
     }
-    eggsButton.addEventListener('click', () => {
-      showMenuSection('eggs');
-    });
-    inventoryButton.addEventListener('click', () => {
-      showMenuSection('inventory');
-    });
-    settingsButton.addEventListener('click', () => {
-      showMenuSection('settings');
-    });
+
+    eggsButton.addEventListener('click', () => toggleMenuSection('eggs', eggsButton));
+    inventoryButton.addEventListener('click', () => toggleMenuSection('inventory', inventoryButton));
+    settingsButton.addEventListener('click', () => toggleMenuSection('settings', settingsButton));
     loadData();
     renderClicker();
   </script>
